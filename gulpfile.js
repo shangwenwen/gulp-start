@@ -119,9 +119,10 @@ gulp.task('BROWSERSYNC', function() {
 
 	gulp.watch('./app/_page/**/*.html', ['COPY:HTML']);
 	gulp.watch('./app/_assets/images/**/*.{jpg,png,gif,svg}', ['COPY:IMAGES']);
+	gulp.watch(['./app/_assets/sass/*.scss', './app/_page/**/*.scss'], ['BUILD:SASS']);
 
 });
 
 
 
-gulp.task('default', sequence('CLEAN', ['COPY:HTML', 'BUILD:JS', 'BUILD:SASS', 'COPY:IMAGES']))
+gulp.task('default', sequence('CLEAN', ['COPY:HTML', 'BUILD:JS', 'BUILD:SASS', 'COPY:IMAGES'], 'BROWSERSYNC'))
