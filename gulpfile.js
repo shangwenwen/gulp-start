@@ -11,10 +11,12 @@ var concatDir = require('gulp-concat-dir'); // 合并文件夹下相同类型文
 var sequence = require('gulp-sequence'); // 任务执行顺序
 var concat = require('gulp-concat');
 
+// CLEAN
 gulp.task('CLEAN', function() {
 	return del('build')
 });
 
+// BUILD JS
 gulp.task('BUILD:JS', function() {
 	var basedir = path.join(__dirname, './app/_page/');
 	var b = reduce.create({
@@ -36,6 +38,7 @@ gulp.task('BUILD:JS', function() {
 		.pipe(reduce.dest('./build/javascript/'));
 });
 
+// BROWSERIFY JS
 gulp.task('BROWSERIFY:JS', function() {
 	var basedir = path.join(__dirname, './app/_page/');
 
@@ -81,6 +84,15 @@ gulp.task('COPY:HTML', function() {
 		.pipe(browserSync.stream());
 });
 
+// COPY:IMAGES
+gulp.task('COPY:IMAGES', function() {
+	return gulp
+		.src('./app/_assets/images/**/*.{jpg,png,gif,svg}')
+		.pipe(gulp.dest('./build/images/'))
+		.pipe(browserSync.stream());
+});
+
+// BUILD SASS
 gulp.task('BUILD:SASS', function() {
 	return gulp
 		.src(['./app/_assets/sass/*.scss', './app/_page/**/*.scss'])
@@ -93,7 +105,7 @@ gulp.task('BUILD:SASS', function() {
 });
 
 // 添加本地服务，浏览器自动刷新，文件修改监听。
-gulp.task('browser', function() {
+gulp.task('BROWSERSYNC', function() {
 	browserSync.init({
 		server: {
 			baseDir: './',
@@ -106,9 +118,10 @@ gulp.task('browser', function() {
 	});
 
 	gulp.watch('./app/_page/**/*.html', ['COPY:HTML']);
+	gulp.watch('./app/_assets/images/**/*.{jpg,png,gif,svg}', ['COPY:IMAGES']);
 
 });
 
 
 
-gulp.task('default', sequence('CLEAN', ['COPY:HTML', 'BUILD:JS', 'BUILD:SASS']))
+gulp.task('default', sequence('CLEAN', ['COPY:HTML', 'BUILD:JS', 'BUILD:SASS', 'COPY:IMAGES']))
