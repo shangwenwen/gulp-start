@@ -1,0 +1,22 @@
+{
+  "name": "gulpstart",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "browser-sync": "^2.14.0",
+    "del": "^2.2.2",
+    "gulp": "^3.9.1",
+    "gulp-concat": "^2.6.0",
+    "gulp-concat-dir": "^1.0.0",
+    "gulp-sequence": "^0.4.5",
+    "gulp-uglify": "^2.0.0",
+    "gulp-watchify-factor-bundle": "^2.0.0",
+    "vinyl-buffer": "^1.0.0"
+  }
+}
