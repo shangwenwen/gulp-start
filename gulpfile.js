@@ -11,6 +11,34 @@ var concatDir = require('gulp-concat-dir'); // 合并文件夹下相同类型文
 var sequence = require('gulp-sequence'); // 任务执行顺序
 var concat = require('gulp-concat');
 
+var imagemin = require('gulp-imagemin'); // 压缩图片
+
+var sass = require('gulp-sass');
+var base64 = require('gulp-css-base64'); // 生成 base64 图片文件
+var cssmin = require('gulp-cssmin'); // 压缩样式文件
+
+var handleErrors = require('./gulp/util/handleErrors.js');
+
+// 添加本地服务，浏览器自动刷新，文件修改监听。
+gulp.task('BROWSERSYNC', function() {
+	browserSync.init({
+		server: {
+			baseDir: './',
+			directory: true,
+		},
+		reloadDelay: 0,
+		timestamps: true,
+		startPath: "./build/",
+		port: 8000
+	});
+
+	gulp.watch('./app/_page/**/*.html', ['COPY:HTML']);
+	gulp.watch('./app/_assets/images/**/*.{jpg,png,gif,svg}', ['COPY:IMAGES']);
+	gulp.watch(['./app/_assets/sass/*.scss', './app/_page/**/*.scss'], ['BUILD:SASS']);
+	gulp.watch(['./node_modules/font-awesome/fonts/*.*', './app/_assets/fonts/*.*'], ['COPY:FONTS']);
+
+});
+
 // CLEAN
 gulp.task('CLEAN', function() {
 	return del('build')
@@ -63,12 +91,13 @@ gulp.task('BROWSERIFY:JS', function() {
 		}))
 		.on('bundle', function(vinylStream) {
 			vinylStream
+				.on('error', handleErrors)
 				.pipe(buffer())
 				.pipe(concatDir({
 					ext: '.js'
 				}))
-				.pipe(uglify())
 				.pipe(reduce.dest('./build/javascript/'))
+				.pipe(browserSync.stream());
 		});
 
 });
@@ -88,6 +117,7 @@ gulp.task('COPY:HTML', function() {
 gulp.task('COPY:IMAGES', function() {
 	return gulp
 		.src('./app/_assets/images/**/*.{jpg,png,gif,svg}')
+		.pipe(imagemin())
 		.pipe(gulp.dest('./build/images/'))
 		.pipe(browserSync.stream());
 });
@@ -96,33 +126,32 @@ gulp.task('COPY:IMAGES', function() {
 gulp.task('BUILD:SASS', function() {
 	return gulp
 		.src(['./app/_assets/sass/*.scss', './app/_page/**/*.scss'])
+		.pipe(sass.sync().on('error', sass.logError))
+		.pipe(base64({
+			baseDir: './',
+			maxWeightResource: 20 * 1024,
+			extensionsAllowed: ['.gif', '.jpg', '.png']
+		}))
 		.pipe(concatDir({
 			ext: '.scss'
 		}))
-		.pipe(concat('all.js'))
+		.pipe(concat('all.css'))
+		.pipe(cssmin())
 		.pipe(gulp.dest('./build/style/'))
 		.pipe(browserSync.stream());
 });
 
-// 添加本地服务，浏览器自动刷新，文件修改监听。
-gulp.task('BROWSERSYNC', function() {
-	browserSync.init({
-		server: {
-			baseDir: './',
-			directory: true,
-		},
-		reloadDelay: 0,
-		timestamps: true,
-		startPath: "./build/",
-		port: 8000
-	});
-
-	gulp.watch('./app/_page/**/*.html', ['COPY:HTML']);
-	gulp.watch('./app/_assets/images/**/*.{jpg,png,gif,svg}', ['COPY:IMAGES']);
-	gulp.watch(['./app/_assets/sass/*.scss', './app/_page/**/*.scss'], ['BUILD:SASS']);
-
+// 拷贝字体
+gulp.task('COPY:FONTS', function() {
+	return gulp.src(['./node_modules/font-awesome/fonts/*.*', './app/_assets/fonts/*.*'])
+		.pipe(gulp.dest('./build/fonts/'))
+		.pipe(browserSync.stream());
 });
 
 
 
-gulp.task('default', sequence('CLEAN', ['COPY:HTML', 'BUILD:JS', 'BUILD:SASS', 'COPY:IMAGES'], 'BROWSERSYNC'))
+// prod
+gulp.task('default', sequence('CLEAN', ['COPY:HTML', 'BUILD:JS', 'BUILD:SASS', 'COPY:IMAGES', 'COPY:FONTS']))
+
+// dev
+gulp.task('dev', sequence('CLEAN', 'BROWSERSYNC', ['COPY:HTML', 'BROWSERIFY:JS', 'BUILD:SASS', 'COPY:IMAGES', 'COPY:FONTS']))
