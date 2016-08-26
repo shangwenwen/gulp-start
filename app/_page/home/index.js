@@ -1,3 +1,5 @@
-require('../../_components/alert')
+require('../../_components/alert');
 
-console.log('home')
+var $ = require('jquery');
+
+console.log('home');

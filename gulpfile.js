@@ -17,6 +17,8 @@ var sass = require('gulp-sass');
 var base64 = require('gulp-css-base64'); // 生成 base64 图片文件
 var cssmin = require('gulp-cssmin'); // 压缩样式文件
 
+var spriter = require('gulp-css-spriter'); // gulp-css-spritesmith  
+
 var handleErrors = require('./gulp/util/handleErrors.js');
 
 // 添加本地服务，浏览器自动刷新，文件修改监听。
@@ -28,7 +30,7 @@ gulp.task('BROWSERSYNC', function() {
 		},
 		reloadDelay: 0,
 		timestamps: true,
-		startPath: "./build/",
+		startPath: "./build/page/",
 		port: 8000
 	});
 
@@ -124,9 +126,18 @@ gulp.task('COPY:IMAGES', function() {
 
 // BUILD SASS
 gulp.task('BUILD:SASS', function() {
+	var timeStamp = +new Date();
+
 	return gulp
 		.src(['./app/_assets/sass/*.scss', './app/_page/**/*.scss'])
 		.pipe(sass.sync().on('error', sass.logError))
+		.pipe(spriter({
+			spriteSheet: './build/images/sprite-' + timeStamp + '.png',
+			pathToSpriteSheetFromCSS: '../images/sprite-' + timeStamp + '.png',
+			spritesmithOptions: {
+				padding: 10
+			}
+		}))
 		.pipe(base64({
 			baseDir: './',
 			maxWeightResource: 20 * 1024,
